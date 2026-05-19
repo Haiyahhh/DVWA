@@ -1,0 +1,85 @@
+name: DevSecOps Pipeline
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # -------------------------------------------------------------
+  # STAGE 1: SAST - Semgrep Scan
+  # -------------------------------------------------------------
+  semgrep_scan:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Semgrep Scan
+        run: semgrep ci --config "p/default"
+
+  # -------------------------------------------------------------
+  # STAGE 2: SAST - SonarQube Cloud Scan
+  # -------------------------------------------------------------
+  sonarqube_scan:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env: 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # -------------------------------------------------------------
+  # STAGE 3: SCA - Snyk Scan
+  # -------------------------------------------------------------
+  sca_scan:
+    name: SCA Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Snyk Setup
+        uses: snyk/actions/setup@master
+      
+      - name: Snyk Scan
+        run: snyk test --all-projects || true 
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # -------------------------------------------------------------
+  # STAGE 4: DAST - OWASP ZAP Scan
+  # -------------------------------------------------------------
+  zap_scan:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    # Wait for all previous scans to finish before attacking the app
+    needs: [semgrep_scan, sonarqube_scan, sca_scan] 
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Spin up Application (Docker)
+        run: |
+          echo "Starting the application..."
+          docker compose up -d
+          sleep 15 # Give the server time to start before scanning
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
+          target: 'http://localhost:4280'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
