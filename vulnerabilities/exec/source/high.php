@@ -2,7 +2,7 @@
 
 if( isset( $_POST[ 'Submit' ]  ) ) {
 	// Get input
-	$target = $_POST[ 'ip' ];
+	$target = $_REQUEST[ 'ip' ];
 	$target = escapeshellarg($target);
 
 	// Set blacklist
