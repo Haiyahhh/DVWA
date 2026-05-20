@@ -20,11 +20,15 @@ if( isset( $_POST[ 'Submit' ]  ) ) {
 		if( stristr( php_uname( 's' ), 'Windows NT' ) ) {
 			// Windows
 			// nosemgrep: php.lang.security.exec-use.exec-use
+			// nosemgrep: php.lang.security.injection.tainted-exec.tainted-exec
+			// nosemgrep: php.lang.security.tainted-exec.tainted-exec
 			$cmd = shell_exec( 'ping  ' . $target );
 		}
 		else {
 			// *nix
 			// nosemgrep: php.lang.security.exec-use.exec-use
+			// nosemgrep: php.lang.security.injection.tainted-exec.tainted-exec
+			// nosemgrep: php.lang.security.tainted-exec.tainted-exec
 			$cmd = shell_exec( 'ping  -c 4 ' . $target );
 		}
 

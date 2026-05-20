@@ -2,7 +2,7 @@
 
 if( isset( $_POST[ 'Submit' ]  ) ) {
 	// Get input
-	$target = $_REQUEST[ 'ip' ];
+	$target = $_POST[ 'ip' ];
 	$target = escapeshellarg($target);
 
 	// Determine OS and execute the ping command.
