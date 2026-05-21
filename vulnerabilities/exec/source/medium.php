@@ -15,16 +15,16 @@ if( isset( $_POST[ 'Submit' ]  ) ) {
 	// $target = str_replace( array_keys( $substitutions ), $substitutions, $target );
 
 	// Determine OS and execute the ping command.
-		if( stristr( php_uname( 's' ), 'Windows NT' ) ) {
-			// Windows
-			// nosemgrep: php.lang.security.exec-use.exec-use, php.lang.security.injection.tainted-exec.tainted-exec, php.lang.security.tainted-exec.tainted-exec
-			$cmd = shell_exec( 'ping  ' . $target );
-		}
-		else {
-			// *nix
-			// nosemgrep: php.lang.security.exec-use.exec-use, php.lang.security.injection.tainted-exec.tainted-exec, php.lang.security.tainted-exec.tainted-exec
-			$cmd = shell_exec( 'ping  -c 4 ' . $target );
-		}
+	if( stristr( php_uname( 's' ), 'Windows NT' ) ) {
+		// Windows
+		// nosemgrep: php.lang.security.exec-use.exec-use
+		$cmd = shell_exec( 'ping  ' . $target );
+	}
+	else {
+		// *nix
+		// nosemgrep: php.lang.security.exec-use.exec-use
+		$cmd = shell_exec( 'ping  -c 4 ' . $target );
+	}
 
 	// Feedback for the end user
 	$html .= "<pre>{$cmd}</pre>";
